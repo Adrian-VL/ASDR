@@ -1,19 +1,26 @@
+import java.util.List;
 
-public class Interprete {
+public class ASDR implements Parser{
 
-  static boolean existenErrores = false;
-
-  public static void main(String[] args) throws IOException {
-        if(args.length > 1) {
-            System.out.println("Uso correcto: interprete [archivo.txt]");
-
-            // Convención defininida en el archivo "system.h" de UNIX
-            System.exit(64);
-        } else if(args.length == 1){
-            ejecutarArchivo(args[0]);
-        } else{
-            ejecutarPrompt();
-        }
+    private int i = 0;
+    private boolean hayErrores = false;
+    private Token preanalisis;
+    private final List<Token> tokens;
+  
+     public ASDR(List<Token> tokens){
+        this.tokens = tokens;
+        preanalisis = this.tokens.get(i);
     }
 
+   @Override
+    public boolean parse() {
+        PROGRAM();
+        if(preanalisis.tipo == TipoToken.EOF && !hayErrores){
+            System.out.println("La sintaxis es correcta");
+            return  true;
+        }else {
+            System.out.println("Se encontraron errores");
+        }
+        return false;
+    }
 }
