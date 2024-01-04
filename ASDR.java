@@ -23,4 +23,9 @@ public class ASDR implements Parser{
         }
         return false;
     }
+    
+    /*Sentencias*/
+    private void STATEMENT(){
+        
+    }
 }
