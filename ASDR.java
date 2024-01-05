@@ -84,6 +84,22 @@ private void VAR_INIT(){
     
     /*Sentencias*/
     private void STATEMENT(){
-        
+        if(hayErrores){
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.FOR)
+            FOR_STMT();
+        else if(preanalisis.tipo == TipoToken.IF)
+            IF_STMT();
+        else if(preanalisis.tipo == TipoToken.WHILE)
+            WHILE_STMT();
+        else if(preanalisis.tipo == TipoToken.PRINT)
+            PRINT_STMT();
+        else if(preanalisis.tipo == TipoToken.LEFT_BRACE)
+            BLOCK();
+        else if(preanalisis.tipo == TipoToken.RETURN)
+            RETURN_STMT();
+        else
+            EXPR_STMT();
     }
 }
