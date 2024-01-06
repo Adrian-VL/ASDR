@@ -123,6 +123,19 @@ private void VAR_INIT(){
         matchErrores(TipoToken.RIGHT_PAREN);
         STATEMENT();
     }
+    
+    private void FOR_STMT_1(){
+        if (hayErrores) {
+            return;
+        }
+
+        if(preanalisis.tipo == TipoToken.VAR)
+            VAR_DECL();
+        else if (preanalisis.tipo == TipoToken.SEMICOLON)
+            match(TipoToken.SEMICOLON);
+        else
+            EXPR_STMT();
+    }
 
     
 }
