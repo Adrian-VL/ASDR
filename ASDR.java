@@ -102,4 +102,27 @@ private void VAR_INIT(){
         else
             EXPR_STMT();
     }
+
+    private void EXPR_STMT(){
+        if (hayErrores)
+            return;
+        
+        EXPRESSION();
+        matchErrores(TipoToken.SEMICOLON);
+    }
+
+    private void FOR_STMT(){
+        if(hayErrores){
+            return;
+        }
+        matchErrores(TipoToken.FOR);
+        matchErrores(TipoToken.LEFT_PAREN);
+        FOR_STMT_1();
+        FOR_STMT_2();
+        FOR_STMT_3();
+        matchErrores(TipoToken.RIGHT_PAREN);
+        STATEMENT();
+    }
+
+    
 }
