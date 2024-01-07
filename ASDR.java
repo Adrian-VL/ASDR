@@ -205,8 +205,165 @@ private void VAR_INIT(){
         }
     }
 
+  private void EQUALITY_2(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.BANG_EQUAL){
+            match(TipoToken.BANG_EQUAL);
+            COMPARISON();
+            EQUALITY_2();
+        }
+        else if(preanalisis.tipo == TipoToken.EQUAL_EQUAL){
+            match(TipoToken.EQUAL_EQUAL);
+            COMPARISON();
+            EQUALITY_2();
+        }
+    }
 
+    private void COMPARISON(){
+        if (hayErrores) {
+            return;
+        }
+        TERM();
+        COMPARISON_2();
+    }
 
-    
+    private void COMPARISON_2(){
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.GREATER) {
+            match(TipoToken.GREATER);
+            TERM();
+            COMPARISON_2();
+        } 
+        else if (preanalisis.tipo == TipoToken.GREATER_EQUAL) {
+            match(TipoToken.GREATER_EQUAL);
+            TERM();
+            COMPARISON_2();
+        }
+        else if (preanalisis.tipo == TipoToken.LESS) {
+            match(TipoToken.LESS);
+            TERM();
+            COMPARISON_2();
+        }
+        else if (preanalisis.tipo == TipoToken.LESS_EQUAL) {
+            match(TipoToken.LESS_EQUAL);
+            TERM();
+            COMPARISON_2();
+        }
+    }
+
+    private void TERM(){
+        if (hayErrores) {
+            return;
+        }
+        FACTOR();
+        TERM_2();
+    }
+
+    private void TERM_2(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.MINUS){
+            match(TipoToken.MINUS);
+            FACTOR();
+            TERM_2();
+        }
+        else if(preanalisis.tipo == TipoToken.PLUS){
+            match(TipoToken.PLUS);
+            FACTOR();
+            TERM_2();
+        }
+    }
+
+    private void FACTOR(){
+        if (hayErrores) {
+            return;
+        }
+        UNARY();
+        FACTOR_2();
+    }
+
+    private void FACTOR_2(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.SLASH){
+            match(TipoToken.SLASH);
+            UNARY();
+            FACTOR_2();
+        }
+        else if(preanalisis.tipo == TipoToken.STAR){
+            match(TipoToken.STAR);
+            UNARY();
+            FACTOR_2();
+        }
+    }
+
+    private void UNARY(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.BANG){
+            match(TipoToken.BANG);
+            UNARY();
+        }
+        else if(preanalisis.tipo == TipoToken.MINUS){
+            match(TipoToken.MINUS);
+            UNARY();
+        }
+        else
+            CALL();
+    }
+
+    private void CALL(){
+        if (hayErrores) {
+            return;
+        }
+        PRIMARY();
+        CALL_2();
+    }
+
+    private void CALL_2(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.LEFT_PAREN){
+            match(TipoToken.LEFT_PAREN);
+            ARGUMENTS_OPC();
+            matchErrores(TipoToken.RIGHT_PAREN);
+            CALL_2();
+        }
+    }
+
+    private void PRIMARY(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.TRUE)
+            match(TipoToken.TRUE);
+        else if(preanalisis.tipo == TipoToken.FALSE)
+            match(TipoToken.FALSE);
+        else if(preanalisis.tipo == TipoToken.NULL)
+            match(TipoToken.NULL);
+        else if(preanalisis.tipo == TipoToken.NUMBER)
+            match(TipoToken.NUMBER);
+        else if(preanalisis.tipo == TipoToken.STRING)
+            match(TipoToken.STRING);
+        else if(preanalisis.tipo == TipoToken.IDENTIFIER)
+            match(TipoToken.IDENTIFIER);
+        else if(preanalisis.tipo == TipoToken.LEFT_PAREN){
+            match(TipoToken.LEFT_PAREN);
+            EXPRESSION();
+            matchErrores(TipoToken.RIGHT_PAREN);
+        }
+        else{
+            hayErrores = true;
+            System.out.println("Se esperaba TRUE, FALSE, NULL, NUMBER, STRING, IDENTIFIER, LEFT_PAREN");
+        }
+    }
     
 }
