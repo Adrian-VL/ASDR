@@ -181,6 +181,56 @@ private void VAR_INIT(){
             STATEMENT();
         }
     }
+
+    private void PRINT_STMT(){
+        if (hayErrores) {
+            return;
+        }
+        matchErrores(TipoToken.PRINT);
+        EXPRESSION();
+        matchErrores(TipoToken.SEMICOLON);
+    }
+
+    private void RETURN_STMT(){
+        if (hayErrores) {
+            return;
+        }
+
+        matchErrores(TipoToken.RETURN);
+        RETURN_EXP_OPC();
+        matchErrores(TipoToken.SEMICOLON);
+    }
+
+    private void RETURN_EXP_OPC(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN){
+            EXPRESSION();
+        }
+    }
+
+    private void WHILE_STMT(){
+        if (hayErrores) {
+            return;
+        }
+
+        matchErrores(TipoToken.WHILE);
+        matchErrores(TipoToken.LEFT_PAREN);
+        EXPRESSION();
+        matchErrores(TipoToken.RIGHT_PAREN);
+        STATEMENT();
+    }
+
+    private void BLOCK(){
+        if (hayErrores) {
+            return;
+        }
+
+        matchErrores(TipoToken.LEFT_BRACE);
+        DECLARATION();
+        matchErrores(TipoToken.RIGHT_BRACE);
+    }
     
 
     /******** Expresiones  *********/
