@@ -159,5 +159,54 @@ private void VAR_INIT(){
         }
     }
 
+    /******** Expresiones  *********/
+    
+    private void EXPRESSION(){
+        if (hayErrores) {
+            return;
+        }
+        ASSIGNMENT();
+    }
+
+    private void ASSIGNMENT(){
+        if (hayErrores) {
+            return;
+        }
+        LOGIC_OR();
+        ASSIGNMENT_OPC();
+    }
+
+    private void ASSIGNMENT_OPC(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.EQUAL){
+            match(TipoToken.EQUAL);
+            EXPRESSION();
+        }
+    }
+
+    private void LOGIC_OR(){
+        if (hayErrores) {
+            return;
+        }
+        LOGIC_AND();
+        LOGIC_OR_2();
+    }
+
+    private void LOGIC_OR_2(){
+        if (hayErrores) {
+            return;
+        }
+        if(preanalisis.tipo == TipoToken.OR){
+            match(TipoToken.OR);
+            LOGIC_AND();
+            LOGIC_OR_2();
+        }
+    }
+
+
+
+    
     
 }
