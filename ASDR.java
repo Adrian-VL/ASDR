@@ -158,6 +158,30 @@ private void VAR_INIT(){
             EXPRESSION();
         }
     }
+    private void IF_STMT(){
+        if (hayErrores) {
+            return;
+        }
+
+        matchErrores(TipoToken.IF);
+        matchErrores(TipoToken.LEFT_PAREN);
+        EXPRESSION();
+        matchErrores(TipoToken.RIGHT_PAREN);
+        STATEMENT();
+        ELSE_STATEMENT();
+    }
+
+    private void ELSE_STATEMENT(){
+        if (hayErrores) {
+            return;
+        }
+
+        if(preanalisis.tipo == TipoToken.ELSE){
+            match(TipoToken.ELSE);
+            STATEMENT();
+        }
+    }
+    
 
     /******** Expresiones  *********/
     
