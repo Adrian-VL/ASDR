@@ -136,6 +136,19 @@ private void VAR_INIT(){
         else
             EXPR_STMT();
     }
+    
+    private void FOR_STMT_2(){
+        if (hayErrores) {
+            return;
+        }
+
+        if(preanalisis.tipo == TipoToken.SEMICOLON)
+            match(TipoToken.SEMICOLON);
+        else{
+            EXPRESSION();
+            matchErrores(TipoToken.SEMICOLON);
+        }
+    }
 
     
 }
