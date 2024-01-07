@@ -23,9 +23,12 @@ public class ASDR implements Parser{
         return false;
     }
 // Función principal del programa
-private void PROGRAM(){
-    DECLARATION(); // Inicia el análisis con la declaración
-}
+ public List<Statement> PROGRAM() {
+        if(hayErrores)
+            return null;
+        else
+            return DECLARATION(dclrtns);
+    }
 
 // Gestiona las declaraciones generales
 private void DECLARATION(){
@@ -85,43 +88,41 @@ private void VAR_INIT(){
     /*Sentencias*/
     private void STATEMENT(){
         if(hayErrores){
-            return;
+            return null;
+        switch(preanalisis.tipo){
+            case FOR:
+                return FOR_STMT();
+            case IF:
+                return IF_STMT();
+            case WHILE:
+                return WHILE_STMT();
+            case PRINT:
+                return PRINT_STMT();
+            case LEFT_BRACE:
+                return BLOCK();
+            case RETURN:
+                return RETURN_STMT();
+            default:
+                return EXPR_STMT();
         }
-        if(preanalisis.tipo == TipoToken.FOR)
-            FOR_STMT();
-        else if(preanalisis.tipo == TipoToken.IF)
-            IF_STMT();
-        else if(preanalisis.tipo == TipoToken.WHILE)
-            WHILE_STMT();
-        else if(preanalisis.tipo == TipoToken.PRINT)
-            PRINT_STMT();
-        else if(preanalisis.tipo == TipoToken.LEFT_BRACE)
-            BLOCK();
-        else if(preanalisis.tipo == TipoToken.RETURN)
-            RETURN_STMT();
-        else
-            EXPR_STMT();
     }
 
-    private void EXPR_STMT(){
-        if (hayErrores)
-            return;
-        
-        EXPRESSION();
-        matchErrores(TipoToken.SEMICOLON);
+    private Statement EXPR_STMT(){
+        Statement stmt = new StmtExpression(EXPRESSION());
+            return stmt;
     }
 
-    private void FOR_STMT(){
+    private Statement FOR_STMT(){
         if(hayErrores){
-            return;
+            return null;
         }
         matchErrores(TipoToken.FOR);
         matchErrores(TipoToken.LEFT_PAREN);
-        FOR_STMT_1();
-        FOR_STMT_2();
-        FOR_STMT_3();
+        Statement initializer =FOR_STMT_1();
+        Expression condition =FOR_STMT_2();
+        Expression increment =FOR_STMT_3();
         matchErrores(TipoToken.RIGHT_PAREN);
-        STATEMENT();
+        Statement body = STATEMENT(); 
     }
     
     private void FOR_STMT_1(){
@@ -235,210 +236,269 @@ private void VAR_INIT(){
 
     /******** Expresiones  *********/
     
-    private void EXPRESSION(){
+    private Expression EXPRESSION(){
         if (hayErrores) {
-            return;
+            return null;
         }
-        ASSIGNMENT();
+       return ASSIGNMENT();
     }
 
-    private void ASSIGNMENT(){
-        if (hayErrores) {
-            return;
-        }
-        LOGIC_OR();
-        ASSIGNMENT_OPC();
+    private Expression ASSIGNMENT(){
+        if(hayErrores)
+            return null;
+        Expression expr = LOGIC_OR();
+        return ASSIGNMENT_OPC(expr);
     }
 
-    private void ASSIGNMENT_OPC(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.EQUAL){
-            match(TipoToken.EQUAL);
-            EXPRESSION();
-        }
-    }
-
-    private void LOGIC_OR(){
-        if (hayErrores) {
-            return;
-        }
-        LOGIC_AND();
-        LOGIC_OR_2();
-    }
-
-    private void LOGIC_OR_2(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.OR){
-            match(TipoToken.OR);
-            LOGIC_AND();
-            LOGIC_OR_2();
+     private Expression ASSIGNMENT_OPC(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo) {
+            case EQUAL:
+                matchErrores(TipoToken.EQUAL);
+                return new ExprAssign(((ExprVariable) expr).name, EXPRESSION());
+            default:
+                return expr;
         }
     }
 
-  private void EQUALITY_2(){
-        if (hayErrores) {
-            return;
+    private Expression LOGIC_OR(){
+        if(hayErrores)
+            return null;
+        Expression expr = LOGIC_AND();
+        return LOGIC_OR_2(expr);
+    }
+    
+    private Expression LOGIC_OR_2(Expression expr){
+        if(hayErrores)
+            return null;
+            
+        switch (preanalisis.tipo) {
+            case OR:
+                Token operador = preanalisis;
+                matchErrores(preanalisis.tipo);
+                Expression right = LOGIC_AND();
+                expr = new ExprLogical(expr, operador, right);
+                return LOGIC_OR_2(expr);
+            default:
+                return expr; 
         }
-        if(preanalisis.tipo == TipoToken.BANG_EQUAL){
-            match(TipoToken.BANG_EQUAL);
-            COMPARISON();
-            EQUALITY_2();
+    }
+    
+    private Expression LOGIC_AND(){
+        if(hayErrores)
+            return null;
+        Expression expr = EQUALITY();
+        return LOGIC_AND_2(expr);
+    }
+
+    private Expression LOGIC_AND_2(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo) {
+            case AND:
+                Token operador = preanalisis;
+                matchErrores(preanalisis.tipo);
+                Expression right = EQUALITY();
+                expr = new ExprLogical(expr, operador, right);
+                return LOGIC_AND_2(expr);
+            default:
+                return expr; 
         }
-        else if(preanalisis.tipo == TipoToken.EQUAL_EQUAL){
-            match(TipoToken.EQUAL_EQUAL);
-            COMPARISON();
-            EQUALITY_2();
+    }
+    
+     private Expression EQUALITY(){
+        if(hayErrores)
+            return null;
+        Expression expr = COMPARISON();
+        return EQUALITY_2(expr);
+    }
+    
+    private Expression EQUALITY_2(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo) {
+            case BANG_EQUAL:
+            case EQUAL_EQUAL:
+                Token operador = preanalisis;
+                matchErrores(preanalisis.tipo);
+                Expression right = COMPARISON();
+                expr = new ExprLogical(expr, operador, right);
+                return EQUALITY_2(expr);
+            default:
+                return expr; 
         }
     }
 
-    private void COMPARISON(){
-        if (hayErrores) {
-            return;
-        }
-        TERM();
-        COMPARISON_2();
+     private Expression COMPARISON(){
+        if(hayErrores)
+            return null;
+        Expression expr = TERM();
+        return COMPARISON_2(expr);
     }
-
-    private void COMPARISON_2(){
-        if (hayErrores) {
-            return;
-        }
-        if (preanalisis.tipo == TipoToken.GREATER) {
-            match(TipoToken.GREATER);
-            TERM();
-            COMPARISON_2();
-        } 
-        else if (preanalisis.tipo == TipoToken.GREATER_EQUAL) {
-            match(TipoToken.GREATER_EQUAL);
-            TERM();
-            COMPARISON_2();
-        }
-        else if (preanalisis.tipo == TipoToken.LESS) {
-            match(TipoToken.LESS);
-            TERM();
-            COMPARISON_2();
-        }
-        else if (preanalisis.tipo == TipoToken.LESS_EQUAL) {
-            match(TipoToken.LESS_EQUAL);
-            TERM();
-            COMPARISON_2();
+    
+    private Expression COMPARISON_2(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo) {
+            case GREATER:
+            case GREATER_EQUAL:
+            case LESS:
+            case LESS_EQUAL:
+                Token operador = preanalisis;
+                matchErrores(preanalisis.tipo);
+                Expression right = TERM();
+                expr = new ExprLogical(expr, operador, right);
+                return COMPARISON_2(expr);
+            default:
+                return expr; 
         }
     }
 
-    private void TERM(){
-        if (hayErrores) {
-            return;
+   private Expression TERM(){
+        if(hayErrores)
+            return null;
+        Expression expr = FACTOR();
+        expr = TERM_2(expr);
+        return expr;
+    }
+    
+    private Expression TERM_2(Expression expr){
+        if(hayErrores)
+            return null;
+
+        switch (preanalisis.tipo){
+            case MINUS:
+                matchErrores(TipoToken.MINUS);
+                Token operador = previous();
+                Expression expr2 = FACTOR();
+                ExprBinary expb = new ExprBinary(expr, operador, expr2);
+                return TERM_2(expb);
+            case PLUS:
+                matchErrores(TipoToken.PLUS);
+                operador = previous();
+                expr2 = FACTOR();
+                expb = new ExprBinary(expr, operador, expr2);
+                return TERM_2(expb);
+            default:
+                break;
         }
-        FACTOR();
-        TERM_2();
+        return expr;
     }
 
-    private void TERM_2(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.MINUS){
-            match(TipoToken.MINUS);
-            FACTOR();
-            TERM_2();
-        }
-        else if(preanalisis.tipo == TipoToken.PLUS){
-            match(TipoToken.PLUS);
-            FACTOR();
-            TERM_2();
-        }
+    private Expression FACTOR(){
+        if(hayErrores)
+            return null;
+        Expression expr = UNARY();
+        expr = FACTOR_2(expr);
+        return expr;
     }
 
-    private void FACTOR(){
-        if (hayErrores) {
-            return;
+    private Expression FACTOR_2(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo){
+            case SLASH:
+                matchErrores(TipoToken.SLASH);
+                Token operador = previous();
+                Expression expr2 = UNARY();
+                ExprBinary expb = new ExprBinary(expr, operador, expr2);
+                return FACTOR_2(expb);
+            case STAR:
+                matchErrores(TipoToken.STAR);
+                operador = previous();
+                expr2 = UNARY();
+                expb = new ExprBinary(expr, operador, expr2);
+                return FACTOR_2(expb);
+            default:
+                break;
         }
-        UNARY();
-        FACTOR_2();
+        return expr;
     }
 
-    private void FACTOR_2(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.SLASH){
-            match(TipoToken.SLASH);
-            UNARY();
-            FACTOR_2();
-        }
-        else if(preanalisis.tipo == TipoToken.STAR){
-            match(TipoToken.STAR);
-            UNARY();
-            FACTOR_2();
-        }
-    }
-
-    private void UNARY(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.BANG){
-            match(TipoToken.BANG);
-            UNARY();
-        }
-        else if(preanalisis.tipo == TipoToken.MINUS){
-            match(TipoToken.MINUS);
-            UNARY();
-        }
-        else
-            CALL();
-    }
-
-    private void CALL(){
-        if (hayErrores) {
-            return;
-        }
-        PRIMARY();
-        CALL_2();
-    }
-
-    private void CALL_2(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.LEFT_PAREN){
-            match(TipoToken.LEFT_PAREN);
-            ARGUMENTS_OPC();
-            matchErrores(TipoToken.RIGHT_PAREN);
-            CALL_2();
+     private Expression UNARY(){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo){
+            case BANG:
+                matchErrores(TipoToken.BANG);
+                Token operador = previous();
+                Expression expr = UNARY();
+                return new ExprUnary(operador, expr);
+            case MINUS:
+                matchErrores(TipoToken.MINUS);
+                operador = previous();
+                expr = UNARY();
+                return new ExprUnary(operador, expr);
+            default:
+                return CALL();
         }
     }
 
-    private void PRIMARY(){
-        if (hayErrores) {
-            return;
-        }
-        if(preanalisis.tipo == TipoToken.TRUE)
-            match(TipoToken.TRUE);
-        else if(preanalisis.tipo == TipoToken.FALSE)
-            match(TipoToken.FALSE);
-        else if(preanalisis.tipo == TipoToken.NULL)
-            match(TipoToken.NULL);
-        else if(preanalisis.tipo == TipoToken.NUMBER)
-            match(TipoToken.NUMBER);
-        else if(preanalisis.tipo == TipoToken.STRING)
-            match(TipoToken.STRING);
-        else if(preanalisis.tipo == TipoToken.IDENTIFIER)
-            match(TipoToken.IDENTIFIER);
-        else if(preanalisis.tipo == TipoToken.LEFT_PAREN){
-            match(TipoToken.LEFT_PAREN);
-            EXPRESSION();
-            matchErrores(TipoToken.RIGHT_PAREN);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Se esperaba TRUE, FALSE, NULL, NUMBER, STRING, IDENTIFIER, LEFT_PAREN");
-        }
+   private Expression CALL(){
+        if(hayErrores)
+            return null;
+        Expression expr = PRIMARY();
+        expr = CALL_2(expr);
+        return expr;
     }
+
+    private Expression CALL_2(Expression expr){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo){
+            case LEFT_PAREN:
+                matchErrores(TipoToken.LEFT_PAREN);
+                List<Expression> lstArguments = ARGUMENTS_OPC();
+                matchErrores(TipoToken.RIGHT_PAREN);
+                ExprCallFunction ecf = new ExprCallFunction(expr, lstArguments);
+                return CALL_2(ecf);
+            default:
+                break;
+        }
+        return expr;
+    }
+
+    private Expression PRIMARY(){
+        if(hayErrores)
+            return null;
+        switch (preanalisis.tipo){
+            case TRUE:
+                matchErrores(TipoToken.TRUE);
+                return new ExprLiteral(true);
+            case FALSE:
+                matchErrores(TipoToken.FALSE);
+                return new ExprLiteral(false);
+            case NULL:
+                matchErrores(TipoToken.NULL);
+                return new ExprLiteral(null);
+            case NUMBER:
+                matchErrores(TipoToken.NUMBER);
+                Token numero = previous();
+                return new ExprLiteral(numero.literal);
+            case STRING:
+                matchErrores(TipoToken.STRING);
+                Token cadena = previous();
+                return new ExprLiteral(cadena.literal);
+            case IDENTIFIER:
+                matchErrores(TipoToken.IDENTIFIER);
+                Token id = previous();
+                return new ExprVariable(id);
+            case LEFT_PAREN:
+                matchErrores(TipoToken.LEFT_PAREN);
+                Expression expr = EXPRESSION();
+                matchErrores(TipoToken.RIGHT_PAREN);
+                return new ExprGrouping(expr);
+            default:
+                hayErrores = true;
+                System.out.println("Se esperaba TRUE, FALSE, NULL, NUMBER, STRING, IDENTIFIER, LEFT_PAREN");
+                break;
+        }
+        return null;
+    }
+
+/*********Otros ***********/
+    
 private void FUNCTION(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
         return;
