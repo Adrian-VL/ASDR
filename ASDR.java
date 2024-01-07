@@ -150,5 +150,14 @@ private void VAR_INIT(){
         }
     }
 
+    private void FOR_STMT_3(){
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN) {
+            EXPRESSION();
+        }
+    }
+
     
 }
