@@ -29,56 +29,69 @@ public class ASDR implements Parser{
         else
             return DECLARATION(dclrtns);
     }
-
+// DECLARATION -> FUN_DECL DECLARATION
+//             -> VAR_DECL DECLARATION
+//             -> STATEMENT DECLARATION
+//             -> Ɛ
 // Gestiona las declaraciones generales
-private void DECLARATION(){
+private List<Statement>DECLARATION(List<Statenment>declarations){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
-        return;
+        return null;
 
     // Comprueba el tipo de declaración y llama a la función correspondiente
     if(preanalisis.tipo == TipoToken.FUN){
-        FUN_DECL(); // Gestiona la declaración de una función
-        DECLARATION(); // Llama recursivamente para seguir analizando
+        declarations.add(FUN_DECL()); // Gestiona la declaración de una función
+        DECLARATION(declarations); // Llama recursivamente para seguir analizando
     }
     else if (preanalisis.tipo == TipoToken.VAR){
-        VAR_DECL(); // Gestiona la declaración de una variable
-        DECLARATION(); // Llama recursivamente para seguir analizando
+        declarations.add(VAR_DECL()); // Gestiona la declaración de una variable
+        DECLARATION(declarations); // Llama recursivamente para seguir analizando
     }
     // Comprueba si el tipo de token corresponde a una sentencia
-    else if (esTipoSentencia(preanalisis.tipo)){
-        STATEMENT(); // Gestiona la sentencia
-        DECLARATION(); // Llama recursivamente para seguir analizando
+    else if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS ||  preanalisis.tipo == TipoToken.TRUE ||
+            preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER ||
+            preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN ||
+            preanalisis.tipo == TipoToekn.FOR || preanaislis.tipo == TipoToken.IF || preanalisis.tipo == TipoToken.PRINT ||
+            preanalisis.tipo == TipoTonken.RETURN || preanalisis.tipo == TipoToken.WHILE || preanalisis.tipo == TipoToken.LEFT_BRECE){
+        declarations.add(STATEMENT()); // Gestiona la sentencia
+        DECLARATION(declarations); // Llama recursivamente para seguir analizando
     }
+    return declarations;
 }
-
+// FUN_DECL -> fun FUNCTION
 // Función específica para la declaración de funciones
-private void FUN_DECL(){
+private Stmfuntion FUN_DECL(){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
-        return;
+        return null;
     
     matchErrores(TipoToken.FUN); // Verifica que el token actual sea 'FUN'
-    FUNCTION(); // Llama a la función que maneja la estructura de una función
+    return FUNCTION(); // Llama a la función que maneja la estructura de una función
 }
-
+//VAR_DECL -> var id VAR_INIT
 // Función específica para la declaración de variables
-private void VAR_DECL(){
+private StmtVar VAR_DECL(){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
-        return;
+        return null;
     
     matchErrores(TipoToken.VAR); // Verifica que el token actual sea 'VAR'
     matchErrores(TipoToken.IDENTIFIER); // Verifica que haya un identificador
-    VAR_INIT(); // Inicializa la variable, si es necesario
+    Token name = previus();
+    Expression initializer = VAR_INIT();
     matchErrores(TipoToken.SEMICOLON); // Espera un punto y coma al final de la declaración
+    return new StmtVar(name, initializer);
 }
-
+//VAR_INIT -> = EXPRESSION
+//         -> Ɛ  
 // Función para la inicialización de variables
-private void VAR_INIT(){
+private Expression VAR_INIT(){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
-        return;
+        return null;
 
     if(preanalisis.tipo == TipoToken.EQUAL){
-        match(TipoToken.EQUAL); // Verifica que el token actual sea un signo igual
-        EXPRESSION(); // Analiza la expresión de inicialización
+        matchErrores(TipoToken.EQUAL); // Verifica que el token actual sea un signo igual
+        return EXPRESSION(); // Analiza la expresión de inicialización
+    } else {
+        return null;
     }
 }
 
