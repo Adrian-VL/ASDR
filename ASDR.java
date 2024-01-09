@@ -512,83 +512,99 @@ private Expression VAR_INIT(){
 
 /*********Otros ***********/
     
-private void FUNCTION(){
+private Stmtfunction FUNCTION(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
-        return;
+        return null;
 
-    // Si el token actual es un identificador, se procesa la función.
-    if(preanalisis.tipo == TipoToken.IDENTIFIER){
         matchErrores(TipoToken.IDENTIFIER); // Se verifica y consume el identificador.
+        Token id = previous();
         matchErrores(TipoToken.LEFT_PAREN); // Se verifica y consume el paréntesis izquierdo.
-        PARAMETERS_OPC(); // Se llama al método para procesar los parámetros opcionales.
+        List<Token> lstParametList = PARAMETERS_OPC();// Se llama al método para procesar los parámetros opcionales.
         matchErrores(TipoToken.RIGHT_PAREN); // Se verifica y consume el paréntesis derecho.
-        BLOCK(); // Se llama al método para procesar el bloque de código de la función.
+        StmtBlock blk = BLOCK(); // Se llama al método para procesar el bloque de código de la función.
+        return new StmtFunction(id, lsParametlist, blk);
     }
 }
 
+// PARAMETERS_OPC -> PARAMETERS
+//                -> Ɛ
 // Método para procesar parámetros opcionales.
-private void PARAMETERS_OPC(){
+private List<Token> PARAMETERS_OPC(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
-        return;
-    if(preanalisis.tipo == TipoToken.IDENTIFIER) // Si hay un identificador, se procesan los parámetros.
-        PARAMETERS();
+        return null;
+    if(preanalisis.tipo == TipoToken.IDENTIFIER) { // Si hay un identificador, se procesan los parámetros.
+       return PARAMETERS();
+    }
+    return null;
 }
 
-// Método para procesar parámetros.
-private void PARAMETERS(){
+// PARAMETERS -> id PARAMETERS_2
+private List<Token> PARAMETERS(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
-        return;
+        return null;
 
+    List<Token> parameters = new ArrayList<Token>();
     matchErrores(TipoToken.IDENTIFIER); // Se verifica y consume el identificador del parámetro.
-    PARAMETERS_2(); // Se llama al método para procesar más parámetros si existen.
+    parameters.add(previous());
+    PARAMETERS_2(parameters);
+    return parameters;// Se llama al método para procesar más parámetros si existen.
 }
-
+//PARAMETERS_2 -> , id PARAMETERS_2
+//             -> // Ɛ
 // Método para continuar procesando parámetros adicionales.
-private void PARAMETERS_2(){
+private void PARAMETERS_2(List<Token> parameters){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
         return;
 
     // Si hay una coma, indica que hay más parámetros.
     if(preanalisis.tipo == TipoToken.COMMA){
-        match(TipoToken.COMMA); // Se verifica y consume la coma.
+        matchErrores(TipoToken.COMMA); // Se verifica y consume la coma.
         matchErrores(TipoToken.IDENTIFIER); // Se verifica y consume el siguiente identificador.
-        PARAMETERS_2(); // Se llama recursivamente para procesar más parámetros si existen.
+        parameters.add(previous());
+        PARAMETERS_2(parameters); // Se llama recursivamente para procesar más parámetros si existen.
     }
 }
-
+//ARGUMENTS_OPC -> EXPRESSION ARGUMENTS
+//              -> Ɛ
 // Método para procesar argumentos opcionales.
 private void ARGUMENTS_OPC(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
-        return;
-
+        return null;
+    List<Expression> expressions = new ArrayList<Expression>();
+    expressions.add(EXPRESSION());
     // Si el token actual es un tipo de dato o un identificador, se procesa la expresión.
-    if(preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN){
-        EXPRESSION(); // Se llama al método para procesar la expresión.
-        ARGUMENTS(); // Se llama al método para procesar más argumentos si existen.
+    if(preanalisis.tipo == TipoToken.COMMA) {
+        ARGUMENTS(expressions); // Se llama al método para procesar más argumentos si existen.
+        return expressions;
+    } else {
+        return expressions;
     }
 }
-
+//ARGUMENTS -> , EXPRESSION ARGUMENTS
+//          -> Ɛ
 // Método para continuar procesando argumentos adicionales.
-private void ARGUMENTS(){
+private void ARGUMENTS(List<Expression> expressions) {
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
         return;
     
     // Si hay una coma, indica que hay más argumentos.
     if(preanalisis.tipo == TipoToken.COMMA){
         match(TipoToken.COMMA); // Se verifica y consume la coma.
-        EXPRESSION(); // Se llama al método para procesar la siguiente expresión.
-        ARGUMENTS(); // Se llama recursivamente para procesar más argumentos si existen.
+        expressions.add(EXPRESSION()); // Se llama al método para procesar la siguiente expresión.
+        ARGUMENTS(expression); // Se llama recursivamente para procesar más argumentos si existen.
     }
 }
 
 // Método para verificar y consumir un token específico.
-private void match(TipoToken tt){
+private void match(TipoToken tt) throws RutimeException {
     if(preanalisis.tipo == tt){ // Si el tipo de token actual coincide con el esperado.
         i++; // Se avanza al siguiente token.
         preanalisis = tokens.get(i); // Se actualiza el token de preanálisis.
     }
     else{
-        hayErrores = true; // Si no coincide, se marca un error.
+        String Message = "Se esperaba " + tt +
+            "pero se encontro " + preanalisis.tipo + "Atn: " + this.tokens.get(i -1);
+       throw new RuntimeException (message);
     }
 }
 
@@ -601,5 +617,8 @@ private void matchErrores(TipoToken tt){
         }
     }
 }
+  private Token previous() {
+      return this.tokens.get(i - 1);
+  }
 
 }
