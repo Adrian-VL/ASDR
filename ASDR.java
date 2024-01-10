@@ -99,7 +99,14 @@ private Expression VAR_INIT(){
 
     
     /*Sentencias*/
-    private void STATEMENT(){
+    //STATEMET -> EXPR_STMT Sentencia que contiene una expresion
+    //         -> FOR_STMT Identifica los for
+    //         -> IF_STMT Identifica los if
+    //         -> PRINT_STMT
+    //         -> RETURN_STMT
+    //         -> WHILE_STMT
+    //         -> BLOCK Identifica todo lo que estre entre llaves {} como un bloque
+    private Statement STATEMENT(){
         if(hayErrores){
             return null;
         switch(preanalisis.tipo){
@@ -120,11 +127,14 @@ private Expression VAR_INIT(){
         }
     }
 
+    // EXPR_STMT -> EXPRESSION ;
     private Statement EXPR_STMT(){
         Statement stmt = new StmtExpression(EXPRESSION());
-            return stmt;
+        matchErrores(TipoToken.SEMICOLON);
+        return stmt;
     }
 
+    // FOR_STMT -> for ( FOR_STMT_1 FOR_STMT_2 FOR_STMT_3 ) STATEMENT
     private Statement FOR_STMT(){
         if(hayErrores){
             return null;
@@ -135,54 +145,97 @@ private Expression VAR_INIT(){
         Expression condition =FOR_STMT_2();
         Expression increment =FOR_STMT_3();
         matchErrores(TipoToken.RIGHT_PAREN);
-        Statement body = STATEMENT(); 
+        Statement body = STATEMENT();
+        /*
+        {
+          inicializacion
+
+          while(condicion){
+            body
+            incremento
+          }
+        }
+        */
+        List<Statement> listaCuerpo = new ArrayList<Statement>();
+        listaCuerpo.add(body);
+        listaCuerpo.add(new StmtExpression(increment));
+        StmtBlock cuerpo = new StmtBlock(listaCuerpo);
+        StmtLoop whileFor = new StmtLoop(condition, cuerpo);
+
+        List<Statement> listaFor = new ArrayList<Statement>();
+        listafor.add(initializer);
+        listaFor.add(whileFor);
+        StmtBlock forBlock = new StmtBlock(listaFor);
+
+        // Expression whileCondition = new ExpLiteral(true);
+        // Expression forCondition = condition;
+        // whileCondition = new ExprLogical (whileCondition), new Token(TipoToken.AND, "and"), forCondition);
+        // return new StmtLoop(whileCondition, new StmtBlock(Arrays.asList(initializer, new StmtLoop(whileCondition, new StmtBlock(Arrays.asList(body,new StmtExpression(increment)))))))
+        return forBlock;
     }
-    
-    private void FOR_STMT_1(){
+
+
+    //FOR_STMT_1 -> VAR_DECL
+    //           -> EXPRE_STMT
+    //           -> ;
+    private Statement FOR_STMT_1(){
         if (hayErrores) {
             return;
         }
 
         if(preanalisis.tipo == TipoToken.VAR)
-            VAR_DECL();
+            return VAR_DECL();
         else if (preanalisis.tipo == TipoToken.SEMICOLON)
             match(TipoToken.SEMICOLON);
+            return null;
         else
-            EXPR_STMT();
+            return EXPR_STMT();
     }
-    
-    private void FOR_STMT_2(){
+    // FOR_STMT_2 -> EXPRESSION;
+    //            -> ;
+    private Expression FOR_STMT_2(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         if(preanalisis.tipo == TipoToken.SEMICOLON)
             match(TipoToken.SEMICOLON);
+            return null;
         else{
-            EXPRESSION();
+            Expression expr = EXPRESSION();
             matchErrores(TipoToken.SEMICOLON);
+            return expr;
         }
     }
 
-    private void FOR_STMT_3(){
+        
+    // FOR_STMT_3 -> EXPRESSION
+    //            -> Ɛ
+    private Expression FOR_STMT_3(){
         if (hayErrores) {
-            return;
+            return null;
         }
-        if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN) {
-            EXPRESSION();
+        if (preanalisis.tipo == TipoToken.RIGHT_PAREN) {
+            return null;
         }
+        else
+            return EXPRESSION();
     }
-    private void IF_STMT(){
+
+
+    // IF_STMT -> if (EXPRESSION) STATEMENT ELSE_STATEMENT
+    private StmtIf IF_STMT(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         matchErrores(TipoToken.IF);
         matchErrores(TipoToken.LEFT_PAREN);
-        EXPRESSION();
+        Expression condition = EXPRESSION();
         matchErrores(TipoToken.RIGHT_PAREN);
-        STATEMENT();
-        ELSE_STATEMENT();
+        Statement ifBranch = STATEMENT();
+        Statement elseBranch = ELSE_STATEMENT();
+        return new StmtIf(condition, ifBranch, elseBranch);
     }
 
     private void ELSE_STATEMENT(){
