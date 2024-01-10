@@ -167,10 +167,6 @@ private Expression VAR_INIT(){
         listaFor.add(whileFor);
         StmtBlock forBlock = new StmtBlock(listaFor);
 
-        // Expression whileCondition = new ExpLiteral(true);
-        // Expression forCondition = condition;
-        // whileCondition = new ExprLogical (whileCondition), new Token(TipoToken.AND, "and"), forCondition);
-        // return new StmtLoop(whileCondition, new StmtBlock(Arrays.asList(initializer, new StmtLoop(whileCondition, new StmtBlock(Arrays.asList(body,new StmtExpression(increment)))))))
         return forBlock;
     }
 
@@ -238,65 +234,83 @@ private Expression VAR_INIT(){
         return new StmtIf(condition, ifBranch, elseBranch);
     }
 
-    private void ELSE_STATEMENT(){
+    // ELSE_STATEMENT -> else STATEMENT
+    //                -> Ɛ
+    private Statement ELSE_STATEMENT(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         if(preanalisis.tipo == TipoToken.ELSE){
-            match(TipoToken.ELSE);
-            STATEMENT();
+            matchErrores(TipoToken.ELSE);
+            return STATEMENT();
         }
+        else
+            return null;
     }
-
-    private void PRINT_STMT(){
+        
+    // PRINT_STMT -> print EXPRESSION ;
+    private StmtPrint PRINT_STMT(){
         if (hayErrores) {
-            return;
+            return null;
         }
         matchErrores(TipoToken.PRINT);
-        EXPRESSION();
+        Expression expr = EXPRESSION();
         matchErrores(TipoToken.SEMICOLON);
+        return new StmtPrint(expr);
     }
 
-    private void RETURN_STMT(){
+    // RETURN_STMT -> return RETURN_EXP_OPC ;
+    private StmtReturn RETURN_STMT(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         matchErrores(TipoToken.RETURN);
-        RETURN_EXP_OPC();
+        Expression expr = RETURN_EXP_OPC();
         matchErrores(TipoToken.SEMICOLON);
+        return new StmtReturn(expr);
     }
 
+    // RETURN_EXP_OPC -> EXPRESSION
+    //                -> Ɛ
     private void RETURN_EXP_OPC(){
         if (hayErrores) {
-            return;
+            return null;
         }
         if(preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN){
-            EXPRESSION();
+            return EXPRESSION();
         }
+        else
+            return null;
     }
 
-    private void WHILE_STMT(){
+
+    // WHILE_STMT -> while ( EXPRESSION ) STATEMENT
+    private StmtLoop WHILE_STMT(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         matchErrores(TipoToken.WHILE);
         matchErrores(TipoToken.LEFT_PAREN);
-        EXPRESSION();
+        Expression condition = EXPRESSION();
         matchErrores(TipoToken.RIGHT_PAREN);
-        STATEMENT();
+        Statement body = STATEMENT();
+        return new StmtLoop(condition, body);
     }
 
-    private void BLOCK(){
+    // BLOCK -> { DECLARATION }
+    private StmtBlock BLOCK(){
         if (hayErrores) {
-            return;
+            return null;
         }
 
         matchErrores(TipoToken.LEFT_BRACE);
-        DECLARATION();
+        List<Statement> declarations = new ArrayList<>();
+        DECLARATION(declarations);
         matchErrores(TipoToken.RIGHT_BRACE);
+        return new StmtBlock(declarations);
     }
     
 
