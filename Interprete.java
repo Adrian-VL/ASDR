@@ -36,7 +36,7 @@ public class Interprete {
         BufferedReader reader = new BufferedReader(input);
 
         for(;;){
-            System.out.print(">>> ");
+            System.out.print(s:">>> ");
             String linea = reader.readLine();
             if(linea == null) break; // Presionar Ctrl + D
             ejecutar(linea);
@@ -52,7 +52,11 @@ public class Interprete {
             //     System.out.println(token);
             // }
             Parser parser = new ASDR(tokens);
-            parser.parse();
+            List<Statement> dclrtns = parser.parse();
+            TablaSimbolos tabla = ne TablaSimbolos(null);
+            for (Statement statement : dclrtns){
+                statement.solve(tabla);
+            }
         }
         catch (Exception ex){
             ex.printStackTrace();
