@@ -51,12 +51,14 @@ public class Interprete {
             // for(Token token : tokens){
             //     System.out.println(token);
             // }
-            Parser parser = new ASDR(tokens);
-            List<Statement> dclrtns = parser.parse();
-            TablaSimbolos tabla = ne TablaSimbolos(null);
-            for (Statement statement : dclrtns){
+            //****Agregado****
+            Parser parser = new ASDR(tokens);//: Crea una instancia del parser ASDR utilizando una lista de tokens llamada token
+            List<Statement> dclrtns = parser.parse();//Utiliza el parser para analizar la lista de tokens y generar una lista de declaraciones (Statement). La lista resultante se almacena en la variable dclrtns.
+            TablaSimbolos tabla = ne TablaSimbolos(null);//Crea una instancia de la clase TablaSimbolos llamada tabla. La inicializa con un contexto padre null. Esto parece indicar que esta será la tabla de símbolos principal.
+            for (Statement statement : dclrtns){// Itera sobre cada declaración en la lista dclrtns y resuelve cada declaración en el contexto de la tabla de símbolos tabla utilizando el método solve.
                 statement.solve(tabla);
             }
+            //****Agregado****
         }
         catch (Exception ex){
             ex.printStackTrace();
