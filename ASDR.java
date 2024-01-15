@@ -6,6 +6,7 @@ public class ASDR implements Parser{
     private boolean hayErrores = false;
     private Token preanalisis;
     private final List<Token> tokens;
+    private List<Statement> dclrtns= new ArrayList<>();
   
      public ASDR(List<Token> tokens){
         this.tokens = tokens;
@@ -13,16 +14,18 @@ public class ASDR implements Parser{
     }
 
    @Override
-    public boolean parse() {
+    public List<Statement> parse() {
         PROGRAM();
         if(preanalisis.tipo == TipoToken.EOF && !hayErrores){
-            System.out.println("La sintaxis es correcta");
-            return  true;
+            System.out.println(x:"La sintaxis es correcta");
+            return  dclrtns;
         }else {
-            System.out.println("Se encontraron errores");
+            System.out.println(x:"Se encontraron errores");
         }
-        return false;
+        return null;
     }
+
+// PROGRAM -> DECLARATION
 // Función principal del programa
  public List<Statement> PROGRAM() {
         if(hayErrores)
