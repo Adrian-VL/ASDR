@@ -56,7 +56,7 @@ public class Interprete {
             List<Statement> dclrtns = parser.parse();//Utiliza el parser para analizar la lista de tokens y generar una lista de declaraciones (Statement). La lista resultante se almacena en la variable dclrtns.
             TablaSimbolos tabla = new TablaSimbolos(null);//Crea una instancia de la clase TablaSimbolos llamada tabla. La inicializa con un contexto padre null. Esto parece indicar que esta será la tabla de símbolos principal.
             for (Statement statement : dclrtns){// Itera sobre cada declaración en la lista dclrtns y resuelve cada declaración en el contexto de la tabla de símbolos tabla utilizando el método solve.
-                statement.solve(tabla);
+                statement.solve(tablaSimbolos);
             }
             //****Agregado****
         }
