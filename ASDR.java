@@ -648,7 +648,6 @@ private StmtFunction FUNCTION(){
         StmtBlock blk = BLOCK(); // Se llama al método para procesar el bloque de código de la función.
         return new StmtFunction(id, lstParametList, blk);
     }
-}
 
 // PARAMETERS_OPC -> PARAMETERS
 //                -> Ɛ
@@ -726,8 +725,8 @@ private void match(TipoToken tt) throws RuntimeException {
         preanalisis = tokens.get(i); // Se actualiza el token de preanálisis.
     }
     else{
-        String Message = "Se esperaba " + tt +
-            "pero se encontro " + preanalisis.tipo + "Atn: " + this.tokens.get(i -1);
+        String message = "Se esperaba " + tt +
+            "pero se encontro " + preanalisis.tipo;
        throw new RuntimeException (message);
     }
 }
