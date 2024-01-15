@@ -315,21 +315,25 @@ private Expression VAR_INIT(){
     
 
     /******** Expresiones  *********/
-    
+        
+    //EXPRESSION -> ASSIGNMENT
     private Expression EXPRESSION(){
         if (hayErrores) {
             return null;
         }
        return ASSIGNMENT();
     }
-
+        
+    //ASSIGNMENT -> LOGIC_OR ASSIGNMENT_OPC
     private Expression ASSIGNMENT(){
         if(hayErrores)
             return null;
         Expression expr = LOGIC_OR();
         return ASSIGNMENT_OPC(expr);
     }
-
+        
+    //ASSIGNMENT_OPC -> = EXPRESSION
+    //               -> Ɛ
      private Expression ASSIGNMENT_OPC(Expression expr){
         if(hayErrores)
             return null;
@@ -341,7 +345,8 @@ private Expression VAR_INIT(){
                 return expr;
         }
     }
-
+    
+    //LOGIC_OR -> LOGIC_AND LOGIC_OR_2
     private Expression LOGIC_OR(){
         if(hayErrores)
             return null;
@@ -349,6 +354,8 @@ private Expression VAR_INIT(){
         return LOGIC_OR_2(expr);
     }
     
+    //LOGIC_OR_2 -> or LOGIC_AND LOGIC_OR_2
+    //           -> Ɛ
     private Expression LOGIC_OR_2(Expression expr){
         if(hayErrores)
             return null;
@@ -365,13 +372,16 @@ private Expression VAR_INIT(){
         }
     }
     
+    //LOGIC_AND -> EQUALITY LOGIC_AND_2
     private Expression LOGIC_AND(){
         if(hayErrores)
             return null;
         Expression expr = EQUALITY();
         return LOGIC_AND_2(expr);
     }
-
+    
+    //LOGIC_AND_2 -> and EQUALITY LOGIC_AND_2
+    //            -> Ɛ
     private Expression LOGIC_AND_2(Expression expr){
         if(hayErrores)
             return null;
@@ -387,6 +397,7 @@ private Expression VAR_INIT(){
         }
     }
     
+    //EQUALITY -> COMPARISON EQUALITY_2
      private Expression EQUALITY(){
         if(hayErrores)
             return null;
@@ -394,6 +405,9 @@ private Expression VAR_INIT(){
         return EQUALITY_2(expr);
     }
     
+    //EQUALITY_2 -> != COMPARISON EQUALITY_2
+    //           -> == COMPARISON EQUALITY_2
+    //           -> Ɛ
     private Expression EQUALITY_2(Expression expr){
         if(hayErrores)
             return null;
@@ -409,7 +423,8 @@ private Expression VAR_INIT(){
                 return expr; 
         }
     }
-
+    
+    //COMPARISON -> TERM COMPARISON_2
      private Expression COMPARISON(){
         if(hayErrores)
             return null;
@@ -417,6 +432,11 @@ private Expression VAR_INIT(){
         return COMPARISON_2(expr);
     }
     
+    //COMPARISON_2 -> > TERM COMPARISON_2
+    //             -> >= TERM COMPARISON_2
+    //             -> < TERM COMPARISON_2
+    //             -> <= TERM COMPARISON_2
+    //             -> Ɛ
     private Expression COMPARISON_2(Expression expr){
         if(hayErrores)
             return null;
@@ -434,7 +454,8 @@ private Expression VAR_INIT(){
                 return expr; 
         }
     }
-
+    
+    //TERM -> FACTOR TERM_2
    private Expression TERM(){
         if(hayErrores)
             return null;
@@ -443,6 +464,9 @@ private Expression VAR_INIT(){
         return expr;
     }
     
+    //TERM_2 -> - FACTOR TERM_2
+    //       -> + FACTOR TERM_2
+    //       -> Ɛ
     private Expression TERM_2(Expression expr){
         if(hayErrores)
             return null;
@@ -466,6 +490,7 @@ private Expression VAR_INIT(){
         return expr;
     }
 
+    //FACTOR -> UNARY FACTOR_2
     private Expression FACTOR(){
         if(hayErrores)
             return null;
@@ -474,6 +499,9 @@ private Expression VAR_INIT(){
         return expr;
     }
 
+    //FACTOR_2 -> / UNARY FACTOR_2
+    //         -> * UNARY FACTOR_2
+    //         -> Ɛ
     private Expression FACTOR_2(Expression expr){
         if(hayErrores)
             return null;
@@ -496,6 +524,9 @@ private Expression VAR_INIT(){
         return expr;
     }
 
+    //UNARY -> ! UNARY
+    //      -> - UNARY
+    //      -> CALL
      private Expression UNARY(){
         if(hayErrores)
             return null;
@@ -515,6 +546,7 @@ private Expression VAR_INIT(){
         }
     }
 
+    //CALL -> PRIMARY CALL_2
    private Expression CALL(){
         if(hayErrores)
             return null;
@@ -523,6 +555,8 @@ private Expression VAR_INIT(){
         return expr;
     }
 
+    //CALL_2 -> ( ARGUMENTS_OPC ) CALL_2
+    //       -> Ɛ
     private Expression CALL_2(Expression expr){
         if(hayErrores)
             return null;
@@ -538,7 +572,14 @@ private Expression VAR_INIT(){
         }
         return expr;
     }
-
+    
+    //PRIMARY -> true
+    //        -> false
+    //        -> null
+    //        -> number
+    //        -> string
+    //        -> id
+    //        -> ( EXPRESSION )
     private Expression PRIMARY(){
         if(hayErrores)
             return null;
