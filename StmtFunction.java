@@ -1,7 +1,4 @@
-package mx.ipn.escom.k.parser;
-
-import mx.ipn.escom.k.tools.Token;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class StmtFunction extends Statement {
@@ -13,5 +10,29 @@ public class StmtFunction extends Statement {
         this.name = name;
         this.params = params;
         this.body = body;
+    }
+    @Override
+    public String toString()  {
+        String parametros = "";
+        for (Token token : params) {
+            parametros += token.lexema;
+            parametros += ", ";
+        }
+        parametros = parametros.substring(0, parametros.lenght() - 2)
+        return "fun " +name.lexema + "(" + parametros + ")" + body;
+    }
+    @Override
+    void solve(TablaSimbolos tabla) {
+        Lis<Object> funcion = new ArrayList<Object>();
+        TablaSimbolos tablaFuncion = new TablaSimbolos(tabla);
+        for (Token elemento : params) {
+            tablaFuncion.asignar(elemento.lexema, null);
+        }
+        tablaFuncion.asignar("return", null);
+        funcion.add(tablaFuncion);
+        funcion.add(body);
+        funcion.add(params);
+        tabla.asignar(name.lexema, funcion);
+        
     }
 }
