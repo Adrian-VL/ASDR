@@ -106,10 +106,13 @@ private Expression VAR_INIT(){
     //         -> RETURN_STMT
     //         -> WHILE_STMT
     //         -> BLOCK Identifica todo lo que estre entre llaves {} como un bloque
+    /*Analiza y gestiona las diferentes sentencias*/
     private Statement STATEMENT(){
+
         if(hayErrores){
             return null;
         switch(preanalisis.tipo){
+            /*El token es FOR, IF, WHILE, PRINT, LEFT_BRACE, RETURN*/
             case FOR:
                 return FOR_STMT();
             case IF:
@@ -122,6 +125,7 @@ private Expression VAR_INIT(){
                 return BLOCK();
             case RETURN:
                 return RETURN_STMT();
+            /*En cualquier otro caso*/
             default:
                 return EXPR_STMT();
         }
@@ -130,22 +134,29 @@ private Expression VAR_INIT(){
     // EXPR_STMT -> EXPRESSION ;
     private Statement EXPR_STMT(){
         Statement stmt = new StmtExpression(EXPRESSION());
+        /* Asegura que la expresion termina en punto y coma */
         matchErrores(TipoToken.SEMICOLON);
+        /* retorna la expresion */
         return stmt;
     }
 
     // FOR_STMT -> for ( FOR_STMT_1 FOR_STMT_2 FOR_STMT_3 ) STATEMENT
     private Statement FOR_STMT(){
+        /*Verifica si hay errores*/
         if(hayErrores){
             return null;
         }
+        /*Verifica la validacion del tipo de token*/
         matchErrores(TipoToken.FOR);
-        matchErrores(TipoToken.LEFT_PAREN);
-        Statement initializer =FOR_STMT_1();
+        matchErrores(TipoToken.LEFT_PAREN); 
+        /* Se inicializan los metodos para analizar la sintaxis del bucle FOR*/
+        Statement initializer =FOR_STMT_1(); 
         Expression condition =FOR_STMT_2();
         Expression increment =FOR_STMT_3();
         matchErrores(TipoToken.RIGHT_PAREN);
         Statement body = STATEMENT();
+
+        /*Creacion de la estrcutura*/
         /*
         {
           inicializacion
@@ -178,14 +189,15 @@ private Expression VAR_INIT(){
         if (hayErrores) {
             return;
         }
-
+        // Si el tipo token es del tipo VAR
         if(preanalisis.tipo == TipoToken.VAR)
-            return VAR_DECL();
+            return VAR_DECL(); // Hay una delcaracion de variable
+        // Si el tipo token es ;
         else if (preanalisis.tipo == TipoToken.SEMICOLON)
             match(TipoToken.SEMICOLON);
             return null;
         else
-            return EXPR_STMT();
+            return EXPR_STMT(); // Hay una expresion
     }
     // FOR_STMT_2 -> EXPRESSION;
     //            -> ;
