@@ -290,7 +290,7 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
 
     // RETURN_EXP_OPC -> EXPRESSION
     //                -> Ɛ
-    private void RETURN_EXP_OPC(){
+    private Expression RETURN_EXP_OPC(){
         if (hayErrores) {
             return null;
         }
