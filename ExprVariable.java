@@ -14,7 +14,7 @@ class ExprVariable extends Expression {
     }
 
     @Override
-    object solve(TablaSimbolos tabla){
+    Object solve(TablaSimbolos tabla){
         if(!tabla.existeIdentificador(name.lexema))
             throw new RuntimeException("La variable" + name.lexema + "n ha sido declarada");
         else
