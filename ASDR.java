@@ -38,7 +38,7 @@ public class ASDR implements Parser{
 //             -> STATEMENT DECLARATION
 //             -> Ɛ
 // Gestiona las declaraciones generales
-private List<Statement>DECLARATION(List<Statenment>declarations){
+private List<Statement>DECLARATION(List<Statement>declarations){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
         return null;
 
@@ -55,8 +55,8 @@ private List<Statement>DECLARATION(List<Statenment>declarations){
     else if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS ||  preanalisis.tipo == TipoToken.TRUE ||
             preanalisis.tipo == TipoToken.FALSE || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER ||
             preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER || preanalisis.tipo == TipoToken.LEFT_PAREN ||
-            preanalisis.tipo == TipoToekn.FOR || preanaislis.tipo == TipoToken.IF || preanalisis.tipo == TipoToken.PRINT ||
-            preanalisis.tipo == TipoTonken.RETURN || preanalisis.tipo == TipoToken.WHILE || preanalisis.tipo == TipoToken.LEFT_BRECE){
+            preanalisis.tipo == TipoToken.FOR || preanalisis.tipo == TipoToken.IF || preanalisis.tipo == TipoToken.PRINT ||
+            preanalisis.tipo == TipoToken.RETURN || preanalisis.tipo == TipoToken.WHILE || preanalisis.tipo == TipoToken.LEFT_BRACE){
         declarations.add(STATEMENT()); // Gestiona la sentencia
         DECLARATION(declarations); // Llama recursivamente para seguir analizando
     }
@@ -64,7 +64,7 @@ private List<Statement>DECLARATION(List<Statenment>declarations){
 }
 // FUN_DECL -> fun FUNCTION
 // Función específica para la declaración de funciones
-private Stmfuntion FUN_DECL(){
+private StmtFunction FUN_DECL(){
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
         return null;
     
@@ -79,7 +79,7 @@ private StmtVar VAR_DECL(){
     
     matchErrores(TipoToken.VAR); // Verifica que el token actual sea 'VAR'
     matchErrores(TipoToken.IDENTIFIER); // Verifica que haya un identificador
-    Token name = previus();
+    Token name = previous();
     Expression initializer = VAR_INIT();
     matchErrores(TipoToken.SEMICOLON); // Espera un punto y coma al final de la declaración
     return new StmtVar(name, initializer);
@@ -113,7 +113,7 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
     /*Analiza y gestiona las diferentes sentencias*/
     private Statement STATEMENT(){
 
-        if(hayErrores){
+        if(hayErrores)
             return null;
         switch(preanalisis.tipo){
             /*El token es FOR, IF, WHILE, PRINT, LEFT_BRACE, RETURN*/
@@ -178,7 +178,7 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
         StmtLoop whileFor = new StmtLoop(condition, cuerpo);
 
         List<Statement> listaFor = new ArrayList<Statement>();
-        listafor.add(initializer);
+        listaFor.add(initializer);
         listaFor.add(whileFor);
         StmtBlock forBlock = new StmtBlock(listaFor);
 
@@ -191,16 +191,16 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
     //           -> ;
     private Statement FOR_STMT_1(){
         if (hayErrores) {
-            return;
+            return null;
         }
         // Si el tipo token es del tipo VAR
-        if(preanalisis.tipo == TipoToken.VAR)
+        if(preanalisis.tipo == TipoToken.VAR){
             return VAR_DECL(); // Hay una delcaracion de variable
         // Si el tipo token es ;
-        else if (preanalisis.tipo == TipoToken.SEMICOLON)
+        } else if (preanalisis.tipo == TipoToken.SEMICOLON){
             match(TipoToken.SEMICOLON);
             return null;
-        else
+        } else
             return EXPR_STMT(); // Hay una expresion
     }
     // FOR_STMT_2 -> EXPRESSION;
@@ -210,10 +210,10 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
             return null;
         }
 
-        if(preanalisis.tipo == TipoToken.SEMICOLON)
-            match(TipoToken.SEMICOLON);
+        if(preanalisis.tipo == TipoToken.SEMICOLON){
+            matchErrores(TipoToken.SEMICOLON);
             return null;
-        else{
+        }else{
             Expression expr = EXPRESSION();
             matchErrores(TipoToken.SEMICOLON);
             return expr;
@@ -636,7 +636,7 @@ private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_I
 
 /*********Otros ***********/
     
-private Stmtfunction FUNCTION(){
+private StmtFunction FUNCTION(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
         return null;
 
@@ -646,7 +646,7 @@ private Stmtfunction FUNCTION(){
         List<Token> lstParametList = PARAMETERS_OPC();// Se llama al método para procesar los parámetros opcionales.
         matchErrores(TipoToken.RIGHT_PAREN); // Se verifica y consume el paréntesis derecho.
         StmtBlock blk = BLOCK(); // Se llama al método para procesar el bloque de código de la función.
-        return new StmtFunction(id, lsParametlist, blk);
+        return new StmtFunction(id, lstParametList, blk);
     }
 }
 
@@ -691,7 +691,7 @@ private void PARAMETERS_2(List<Token> parameters){
 //ARGUMENTS_OPC -> EXPRESSION ARGUMENTS
 //              -> Ɛ
 // Método para procesar argumentos opcionales.
-private void ARGUMENTS_OPC(){
+private List<Expression> ARGUMENTS_OPC(){
     if(hayErrores) // Si hay errores previos, se retorna inmediatamente.
         return null;
     List<Expression> expressions = new ArrayList<Expression>();
@@ -715,12 +715,12 @@ private void ARGUMENTS(List<Expression> expressions) {
     if(preanalisis.tipo == TipoToken.COMMA){
         match(TipoToken.COMMA); // Se verifica y consume la coma.
         expressions.add(EXPRESSION()); // Se llama al método para procesar la siguiente expresión.
-        ARGUMENTS(expression); // Se llama recursivamente para procesar más argumentos si existen.
+        ARGUMENTS(expressions); // Se llama recursivamente para procesar más argumentos si existen.
     }
 }
 
 // Método para verificar y consumir un token específico.
-private void match(TipoToken tt) throws RutimeException {
+private void match(TipoToken tt) throws RuntimeException {
     if(preanalisis.tipo == tt){ // Si el tipo de token actual coincide con el esperado.
         i++; // Se avanza al siguiente token.
         preanalisis = tokens.get(i); // Se actualiza el token de preanálisis.
