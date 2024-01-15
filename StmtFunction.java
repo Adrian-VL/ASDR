@@ -23,7 +23,7 @@ public class StmtFunction extends Statement {
     }
     @Override
     void solve(TablaSimbolos tabla) {
-        Lis<Object> funcion = new ArrayList<Object>();
+        List<Object> funcion = new ArrayList<Object>();
         TablaSimbolos tablaFuncion = new TablaSimbolos(tabla);
         for (Token elemento : params) {
             tablaFuncion.asignar(elemento.lexema, null);
