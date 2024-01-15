@@ -87,7 +87,7 @@ private StmtVar VAR_DECL(){
 //VAR_INIT -> = EXPRESSION
 //         -> Ɛ  
 // Función para la inicialización de variables
-private Expression VAR_INIT(){
+private Expression VAR_INIT(){ // Esta línea declara una función llamada VAR_INIT.
     if(hayErrores) // Si hay errores, termina la ejecución de esta función
         return null;
 
