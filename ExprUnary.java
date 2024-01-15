@@ -23,7 +23,7 @@ public class ExprUnary extends Expression{
                     if(right.solve(tabla) instaneof Boolean)
                         return !((boolean) right.solve(tabla));
                     else
-                        throw new RuntimeException(message: "Error semantico: Operando no compatible");
+                        throw new RuntimeException( "Error semantico: Operando no compatible");
                 case MINUS:
                     if(right.solve(tabla) instanceof Integer)
                         return -((Integer) right.solve(tabla));
@@ -36,7 +36,7 @@ public class ExprUnary extends Expression{
                 default:
                     break;
             }
-        } catch (Excerption e){
+        } catch (Exception e){
             e.printStackTrace();
         }
         return null;
